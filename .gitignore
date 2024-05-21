@@ -1,0 +1,12 @@
+preprocessed_depr
+submodules
+
+# cache files
+__pycache__
+
+# tmp files
+tmp
+
+# dotfiles
+.git
+.env

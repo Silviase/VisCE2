@@ -1,0 +1,4 @@
+[task]
+[cand]
+[0-100]
+[suffix]

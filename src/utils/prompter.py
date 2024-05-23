@@ -2,8 +2,8 @@ from .constants import desc_precision, desc_coverage, desc_task
 from copy import deepcopy
 
 class Prompter:
-    def __init__(self, prompt_path, **kwargs):
-        self.prompt_base = self._load_prompt_base(prompt_path)
+    def __init__(self, **kwargs):
+        self.prompt_base = self._load_prompt_base(kwargs.get('prompt_path'))
         
         # Use or not (default: False)
         self.use_cand = kwargs.get('use_cand', False)

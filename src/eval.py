@@ -10,7 +10,6 @@ class Evaluator:
     def __init__(self, 
                  dataset_id: str, 
                  model_id:str, 
-                 prompt_path:str, 
                  prompt_cfg:dict, 
                  eval_results_dir:str='results/eval',
                  eval_results_file_name:str='eval_result',
@@ -18,7 +17,6 @@ class Evaluator:
         self.dataset_id = dataset_id
         self.model_id = model_id
         self.split = split
-        self.prompt_path = prompt_path
         self.eval_results_dir = os.path.join(eval_results_dir, self.dataset_id, self.model_id)
         self.eval_results_file_name = eval_results_file_name
         if not os.path.exists(self.eval_results_dir):
@@ -26,7 +24,7 @@ class Evaluator:
         
         self.dataset = get_dataset(dataset_id, split=split)
         self.generator = get_generator(model_id)
-        self.prompter = Prompter(prompt_path, **prompt_cfg)
+        self.prompter = Prompter(**prompt_cfg)
 
 
     def inference(self, result_key='score_model') -> None:
@@ -98,8 +96,8 @@ def main(args):
     evaluator = Evaluator(
         args.dataset_id, 
         args.model_id, 
-        args.prompt_path, 
         prompt_cfg=dict(
+            prompt_path=args.prompt_path,
             use_cand=args.use_cand,
             use_refs=args.use_refs,
             use_cand_a=args.use_cand_a,

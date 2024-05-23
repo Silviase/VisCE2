@@ -25,7 +25,7 @@ class Flickr8kExpert(CapEvalDataset):
         """
         
         # load result jsonl file
-        eval_result_path = f'{eval_results_dir}/{model_id}_{prompt}.jsonl'
+        eval_result_path = f'{eval_results_dir}/{model_id}/{prompt}.jsonl'
         with open(eval_result_path, 'r') as f:
             eval_results = [json.loads(line) for line in f]
 

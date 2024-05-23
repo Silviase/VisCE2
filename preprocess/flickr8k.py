@@ -56,3 +56,7 @@ if __name__ == '__main__':
     # Save dataset to a single json file
     with open('preprocess/flickr8k-expert.json', 'w') as fp:
         json.dump(dataset.data, fp, indent=2)
+        
+    dataset = Flickr8k('crowdflower_flickr8k.json')
+    with open('preprocess/flickr8k-cf.json', 'w') as fp:
+        json.dump(dataset.data, fp, indent=2)

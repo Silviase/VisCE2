@@ -9,6 +9,8 @@ Our method focuses on visual context, which refers to the detailed content of im
 By extracting and organizing them into a structured format, we replace the human-written references with visual contexts and help VLMs better understand the image, enhancing evaluation performance.
 Through meta-evaluation on multiple datasets, we validated that VisCE2 outperforms the conventional pre-trained metrics in capturing caption quality and demonstrates superior consistency with human judgment.
 
+![VisCE2](assets/fig1.png)
+
 ## Dataset Preparation
 
 ### Flickr 8k-Expert, Flickr8k-CF

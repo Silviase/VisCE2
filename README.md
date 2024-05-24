@@ -13,37 +13,8 @@ Through meta-evaluation on multiple datasets, we validated that VisCE2 outperfor
 
 ## Dataset Preparation
 
-### Flickr 8k-Expert, Flickr8k-CF
-
-- Download Flickr 8k Dataset from this [link](https://drive.google.com/drive/folders/1oQY8zVCmf0ZGUfsJQ_OnqP2_kw1jGIXp) .
-
-### Composite
-
-- Download Flickr 8k Dataset from this [link](https://drive.google.com/drive/folders/1oQY8zVCmf0ZGUfsJQ_OnqP2_kw1jGIXp) .
-
-> [!TIP]
-> You may have completed this in downloading Flickr8k-Expert dataset.
-
-- Download Flickr 30k Dataset from Kaggle or other link. You can also download from huggingface.datasets .
-- Download MSCOCO val2014 dataset from [link](https://cocodataset.org/#download) and choose [2014 Val images](http://images.cocodataset.org/zips/val2014.zip).
-- Download annotation files from Dropbox link, located in their [landing page](https://imagesdg.wordpress.com/image-to-scene-description-graph/)
-
-### PASCAL-50S
-
-> [!TIP]
-> Currently unavailable. Wait for more informations.
-
-<!-- - Run `wget https://filebox.ece.vt.edu/~vrama91/CIDEr_miscellanous/cider_datasets.tar` and `tar -xvzf {file_name}`.
-- Follow `notebooks/prepare_pascal50s.ipynb` and make dataset for the inference. -->
-
-### THumB 1.0
-
-- Download MS-COCO val2014 dataset.
-
-> [!TIP]
-> You may have completed this in downloading Composite dataset.
-
-- Clone THumB repository from [GitHub](https://github.com/jungokasai/THumB).
+We provide the dataset for \[meta-\]evaluation in the [huggingface datasets](https://huggingface.co/datasets/silviase/CapEval).
+You do not have to prepare the dataset by yourself.
 
 ## Usage
 

@@ -1,18 +1,21 @@
-import os
-import pandas as pd
+from datasets import load_dataset
+from flickr8k_expert import Flickr8kExpert
+from flickr8k_cf import Flickr8kCF
+from composite import Composite
 
 class CapEvalDataset:
     def __init__(self, dataset_id, split=-1):
         self.dataset_id = dataset_id
         self.split = split
-        self._load(split=split)
+        self._load()
         
-    # TODO: Implement by jsonl
-    def _load(self, split=-1):
-        if split == -1:
-            self.data = pd.read_csv(os.path.join(os.getcwd(), f'preprocessed_depr/{self.dataset_id}.tsv'), sep='\t')
+    def _load(self):
+        if self.split > 0:
+            min_idx = self.split * 100
+            max_idx = min_idx + 100
+            self.dataset = load_dataset('Silviase/CapEval', self.dataset_id, split=f'train[{min_idx}:{max_idx}]')
         else:
-            self.data = pd.read_csv(os.path.join(os.getcwd(), f'preprocessed_depr/{self.dataset_id}/split/{split}.tsv'), sep='\t')
+            self.dataset = load_dataset('Silviase/CapEval', self.dataset_id, split='train')
 
     def metaeval(self, model_id, prompt, eval_results_dir='results_eval', metaeval_results_dir='results_metaeval') -> None:
         """
@@ -33,5 +36,10 @@ class CapEvalDataset:
     
 def get_dataset(dataset_id, split=-1):
     if dataset_id == 'flickr8k-expert':
-        from .flickr8k_expert import Flickr8kExpert
         return Flickr8kExpert(dataset_id, split=split)
+    elif dataset_id == 'flickr8k-cf':
+        return Flickr8kCF(dataset_id, split=split)
+    elif dataset_id == 'composite':
+        return Composite(dataset_id, split=split)
+    else:
+        raise NotImplementedError("The dataset is not implemented yet.")

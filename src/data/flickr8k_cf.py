@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-class Flickr8kExpert(CapEvalDataset):
+class Flickr8kCF(CapEvalDataset):
     def __init__(self, dataset_id, split=-1):
         super().__init__(dataset_id, split=split)
 
@@ -57,5 +57,5 @@ class Flickr8kExpert(CapEvalDataset):
     
 
 if __name__ == '__main__':
-    f8kex = get_dataset('flickr8k-expert', split=1)
+    f8kex = get_dataset('flickr8k-cf', split=1)
     print(f8kex.dataset[0])

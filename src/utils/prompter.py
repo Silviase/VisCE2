@@ -28,9 +28,9 @@ class Prompter:
         
         # Use or Not
         if self.use_cand:
-            prompt = prompt.replace('[cand]', f"Candidate:\n{datum['caption']}")
+            prompt = prompt.replace('[cand]', f"Candidate:\n{datum['candidate']}")
         if self.use_refs:
-            refs = '\n'.join(datum['references'].split('+++'))
+            refs = '\n'.join(datum['references'])
             prompt = prompt.replace('[refs]', f"References:\n{refs}")
         if self.use_cand_a:
             prompt = prompt.replace('[cand_a]', f"A: {datum['cand_a']}")

@@ -1,4 +1,4 @@
-from capeval_dataset import CapEvalDataset, get_dataset
+from .capeval_dataset import CapEvalDataset, get_dataset
 from scipy.stats import kendalltau
 import json
 import os
@@ -57,5 +57,5 @@ class Flickr8kCF(CapEvalDataset):
     
 
 if __name__ == '__main__':
-    f8kex = get_dataset('flickr8k-cf', split=1)
-    print(f8kex.dataset[0])
+    f8kcf = get_dataset('flickr8k-cf', split=1)
+    print(f8kcf[0])

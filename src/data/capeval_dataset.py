@@ -1,7 +1,4 @@
 from datasets import load_dataset
-from flickr8k_expert import Flickr8kExpert
-from flickr8k_cf import Flickr8kCF
-from composite import Composite
 
 class CapEvalDataset:
     def __init__(self, dataset_id, split=-1):
@@ -10,7 +7,7 @@ class CapEvalDataset:
         self._load()
         
     def _load(self):
-        if self.split > 0:
+        if self.split >= 0:
             min_idx = self.split * 100
             max_idx = min_idx + 100
             self.dataset = load_dataset('Silviase/CapEval', self.dataset_id, split=f'train[{min_idx}:{max_idx}]')
@@ -36,10 +33,13 @@ class CapEvalDataset:
     
 def get_dataset(dataset_id, split=-1):
     if dataset_id == 'flickr8k-expert':
-        return Flickr8kExpert(dataset_id, split=split)
+        from .flickr8k_expert import Flickr8kExpert
+        return Flickr8kExpert(dataset_id, split=split).dataset
     elif dataset_id == 'flickr8k-cf':
-        return Flickr8kCF(dataset_id, split=split)
+        from .flickr8k_cf import Flickr8kCF
+        return Flickr8kCF(dataset_id, split=split).dataset
     elif dataset_id == 'composite':
-        return Composite(dataset_id, split=split)
+        from .composite import Composite
+        return Composite(dataset_id, split=split).dataset
     else:
         raise NotImplementedError("The dataset is not implemented yet.")

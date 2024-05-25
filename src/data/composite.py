@@ -1,4 +1,4 @@
-from capeval_dataset import CapEvalDataset, get_dataset
+from .capeval_dataset import CapEvalDataset, get_dataset
 from scipy.stats import kendalltau
 import json
 import os
@@ -26,7 +26,7 @@ class Composite(CapEvalDataset):
         """
         
         # load result .parquet file (without image version)
-        eval_result_path = f'{eval_results_dir}/{model_id}/{prompt}.parquet'
+        eval_result_path = f'{eval_results_dir}/composite/{model_id}/{prompt}.parquet'
         eval_results = pd.read_parquet(eval_result_path)
 
         # calculate Kendall's tau (b) using the evaluation results
@@ -62,4 +62,4 @@ class Composite(CapEvalDataset):
 
 if __name__ == '__main__':
     composite = get_dataset('composite', split=1)
-    print(composite.dataset[0])
+    print(composite[0])

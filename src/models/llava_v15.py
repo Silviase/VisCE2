@@ -10,7 +10,7 @@ class LlavaV15(Generator):
 
     def _load(self, model_id):
         # e.g.) model_id = "liuhaotian/llava-v1.5-7b"
-        self.load_4bit = True if '13b' in model_id else False
+        self.load_4bit = True # if '13b' in model_id else False
         self.conv_mode = "llava_v0"
         print("Conversation mode: {}".format(self.conv_mode))
         self.tokenizer, self.model, self.image_processor, self.context_len = load_pretrained_model(
@@ -23,9 +23,9 @@ class LlavaV15(Generator):
             self.model.to(torch.device("cuda"))
 
 
-    def generate(self, image_path, prompt):
+    def generate(self, image, prompt):
         """
-        Query the llava with the prompt and a single image.
+        generate with the prompt and a single image.
 
         Args:
             image_path (str): The path to the image
@@ -43,7 +43,7 @@ class LlavaV15(Generator):
             input_ids = input_ids.to(self.model.device)
         
         # image
-        image = [Image.open(image_path).convert("RGB")]
+        image = [image]
         image_tensor = process_images(image, self.image_processor, self.model.config).to(self.model.device, dtype=torch.float16)
         if not self.load_4bit:
             image_tensor = image_tensor.to(self.model.device)
@@ -79,9 +79,9 @@ if __name__ == "__main__":
     model = LlavaV15("liuhaotian/llava-v1.5-7b")
     
     for prompt in prompts:
-        print(model.query(img_path, prompt))
+        print(model.generate(img_path, prompt))
         
     model = LlavaV15("liuhaotian/llava-v1.5-13b")
     
     for prompt in prompts:
-        print(model.query(img_path, prompt))
+        print(model.generate(img_path, prompt))

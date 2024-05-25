@@ -1,0 +1,22 @@
+Analyze the uploaded image and provide a structured output focusing on the objects, their features, and the relationships between them. 
+Select up to five of the most important elements. The output should be organized as follows:
+
+List of Important Objects (up to five):
+
+- Object 1: [Brief description]
+- Object 2: [Brief description]
+- (Continue as necessary, up to five objects)
+
+Features (Specific characteristics and attributes of each object, such as color, shape, size, and texture):
+
+- Features of Object 1: [Detailed description of features]
+- Features of Object 2: [Detailed description of features]
+- (Continue as necessary for each selected object)
+
+Relationships (The way objects interact or are positioned relative to each other, without using specific object names or symbols):
+
+- Description of a relationship: [General description]
+- Another relationship: [General description]
+- (Continue as necessary for each relevant relationship)
+
+Focus on providing unique and detailed insights into the features and relationships of the selected objects up to five objects.

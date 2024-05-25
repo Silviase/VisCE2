@@ -2,6 +2,7 @@ datasets
 preprocess
 preprocessed_depr
 submodules
+results/*/*/*/*/*/result_*.parquet
 
 # cache files
 __pycache__

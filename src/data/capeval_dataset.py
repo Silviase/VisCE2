@@ -41,5 +41,8 @@ def get_dataset(dataset_id, split=-1):
     elif dataset_id == 'composite':
         from .composite import Composite
         return Composite(dataset_id, split=split).dataset
+    elif dataset_id == 'thumb':
+        from .thumb import THumB
+        return THumB(dataset_id, split=split).dataset
     else:
         raise NotImplementedError("The dataset is not implemented yet.")

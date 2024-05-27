@@ -19,8 +19,8 @@ class Evaluator:
         self.prompt_id = prompt_cfg['prompt_path'].split('/')[-1].split('.')[0]
         self.split = split
         self.eval_results_dir = eval_results_dir
-        self.mode=mode
-        self.result_key=result_key
+        self.mode = mode
+        self.result_key = result_key
         
         # load hf dataset
         self.dataset = get_dataset(self.dataset_id, self.split)
@@ -116,6 +116,7 @@ def main(args):
             use_attribute=args.use_attribute,
             use_relation=args.use_relation,
         ),
+        eval_results_dir=args.eval_results_dir,
         split=args.split,
         mode=args.mode,
         result_key=args.result_key,

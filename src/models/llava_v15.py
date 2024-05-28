@@ -4,7 +4,7 @@ from llava.model.builder import load_pretrained_model
 from llava.mm_utils import process_images, tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 from PIL import Image
 import torch
-from .generator import Generator
+from .generator import Generator, get_generator
 
 class LlavaV15(Generator):
 
@@ -19,8 +19,6 @@ class LlavaV15(Generator):
             model_name=get_model_name_from_path(model_id),
             load_4bit=self.load_4bit,
         )
-        if torch.cuda.is_available() and not self.load_4bit:
-            self.model.to(torch.device("cuda"))
 
 
     def generate(self, image, prompt):
@@ -66,11 +64,15 @@ class LlavaV15(Generator):
 
         outputs = self.tokenizer.decode(output_ids[0]).strip()
         conv.messages[-1][-1] = outputs
+        
+        # delete <s> and </s>
+        outputs = outputs.replace('<s>', '').replace('</s>', '')
+        
         return outputs
 
 
 if __name__ == "__main__":
-    img_path = "/nas64/silviase/Project/prj-blink-ja/BLINK_Benchmark/assets/sample_neko.jpg"
+    img = Image.open("/nas64/silviase/Project/prj-blink-ja/BLINK_Benchmark/assets/sample_neko.jpg")
     prompts = [
         "Describe the image in detail.",
         "Evaluate the caption is appropriate from 0 to 10 point scale. caption: A cat is sitting on the floor.",
@@ -79,9 +81,9 @@ if __name__ == "__main__":
     model = LlavaV15("liuhaotian/llava-v1.5-7b")
     
     for prompt in prompts:
-        print(model.generate(img_path, prompt))
+        print(model.generate(img, prompt))
         
-    model = LlavaV15("liuhaotian/llava-v1.5-13b")
+    # model = LlavaV15("liuhaotian/llava-v1.5-13b")
     
-    for prompt in prompts:
-        print(model.generate(img_path, prompt))
+    # for prompt in prompts:
+    #     print(model.generate(img, prompt))

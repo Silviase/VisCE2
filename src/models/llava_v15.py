@@ -37,14 +37,10 @@ class LlavaV15(Generator):
         prompt = conv.get_prompt()
         
         input_ids = tokenizer_image_token(prompt, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0)
-        if not self.load_4bit:
-            input_ids = input_ids.to(self.model.device)
         
         # image
         image = [image]
         image_tensor = process_images(image, self.image_processor, self.model.config).to(self.model.device, dtype=torch.float16)
-        if not self.load_4bit:
-            image_tensor = image_tensor.to(self.model.device)
         
         # stopping criteria
         stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2

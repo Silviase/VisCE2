@@ -51,7 +51,7 @@ class Evaluator:
         # Extract unique image_path rows
         original_df = pd.DataFrame(self.dataset)
         unique_paths = original_df.drop_duplicates(subset=['image_path'])[['image_path', 'image']]
-            
+
         # Define the query function
         def _query(example):
             example['prompt'] = self.prompter.format(example)

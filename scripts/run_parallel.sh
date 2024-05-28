@@ -18,11 +18,11 @@ while [ $START -le $END ]; do
     for ((i=0; i<$BATCH_SIZE; i++)); do
         c=$((START + i))
         if [ $c -le $END ]; then
-            (CUDA_VISIBLE_DEVICES=4 python src/eval.py \
+            (CUDA_VISIBLE_DEVICES=$DEVICES python src/eval.py \
                 --dataset_id=$DATASET_ID \
                 --model_id=$MODEL_ID \
                 --prompt_path=prompts/$PROMPT_ID.txt \
-                --eval_results_dir results/$RESULT_DIR \
+                --eval_results_dir=results/$RESULT_DIR \
                 --split=$c \
                 --mode=$MODE \
                 --result_key=$RESULT_KEY \

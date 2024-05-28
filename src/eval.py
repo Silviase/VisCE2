@@ -3,6 +3,11 @@ from models.generator import get_generator
 from utils.prompter import Prompter
 import os
 import argparse
+import pandas as pd
+from datasets import Dataset, DatasetDict
+from PIL import Image
+from tqdm import tqdm
+tqdm.pandas()
 
 class Evaluator:
     def __init__(self, 
@@ -28,6 +33,63 @@ class Evaluator:
         self.prompter = Prompter(**prompt_cfg)
 
 
+    def _inference_eval(self) -> None:
+        # Define the query function
+        def _query(example):
+            example['prompt'] = self.prompter.format(example)
+            example['scores'][self.result_key] = self.generator.generate(example['image'], example['prompt'])
+            return example
+        
+        # Conduct the evaluation
+        eval_result = self.dataset.map(_query, batched=False)
+        
+        # TODO: Implement the save function
+        raise NotImplementedError("Save function is not implemented yet")
+        
+    
+    def _inference_extract(self) -> None:
+        # Extract unique image_path rows
+        original_df = pd.DataFrame(self.dataset)
+        unique_paths = original_df.drop_duplicates(subset=['image_path'])[['image_path', 'image']]
+            
+        # Define the query function
+        def _query(example):
+            example['prompt'] = self.prompter.format(example)
+            example['result'] = self.generator.generate(example['image'], example['prompt'])
+            return example
+        
+        # Map to the dataset
+        extracted_df = unique_paths.progress_apply(_query, axis=1)
+        
+        # Create row if original_df does not have 
+        if self.prompt_id not in original_df.columns:
+            original_df[self.prompt_id] = [{} for _ in range(len(original_df))]
+
+        # Add information to original_df
+        for index, row in extracted_df.iterrows():
+            matching_rows = original_df[original_df['image_path'] == row['image_path']]
+            if not matching_rows.empty:
+                for orig_index in matching_rows.index:
+                    original_df.at[orig_index, self.prompt_id][self.model_id] = row['result']
+        
+        # drop the image column
+        original_df.drop(columns=['image'], inplace=True)
+        
+        # save the result
+        result_file_path = os.path.join(
+            self.eval_results_dir, 
+            self.dataset_id, 
+            self.model_id, 
+            self.prompt_id,
+            'result.parquet'
+        )
+        
+        if not os.path.exists(os.path.dirname(result_file_path)):
+            os.makedirs(os.path.dirname(result_file_path))
+        
+        original_df.to_parquet(result_file_path)
+        return 
+
     def inference(self) -> None:
         """
         Inference the model using the prompt and save the results to the result_eval_dir.
@@ -40,33 +102,12 @@ class Evaluator:
             None
         """
         
-        def query(example):
-            example['prompt'] = self.prompter.format(example)
-            if self.mode == 'extract':
-                example[self.result_key] = self.generator.generate(example['image'], example['prompt'])
-            elif self.mode == 'eval':
-                example['scores'][self.result_key] = self.generator.generate(example['image'], example['prompt'])
-            else:
-                raise ValueError(f"Invalid mode: {self.mode}")
-            return example
-        
-        # Map the query function to the dataset; not batched (llava15 is not supported for batched inference)
-        eval_results = self.dataset.map(query, batched=False)
-            
-        # save the result
-        result_file_path = os.path.join(
-            self.eval_results_dir, 
-            self.dataset_id, 
-            self.model_id, 
-            self.prompt_id,
-            'result.parquet' if self.split == -1 else f'result_{self.split}.parquet'
-        )
-        
-        if not os.path.exists(os.path.dirname(result_file_path)):
-            os.makedirs(os.path.dirname(result_file_path))
-        
-        # convert hf dataset to parquet file
-        eval_results.to_parquet(result_file_path)
+        if self.mode == 'eval':
+            self._inference_eval()
+        elif self.mode == 'extract':
+            self._inference_extract()
+        else:
+            raise ValueError(f"Invalid mode: {self.mode}")
         
         return 
 

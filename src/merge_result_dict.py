@@ -2,7 +2,8 @@ import os
 import argparse
 import pandas as pd
 from tqdm import tqdm
-
+from datasets import load_dataset, Dataset
+from PIL import Image as PILImage
 
 def merge_dicts(dict1, dict2):
     """
@@ -35,9 +36,15 @@ def list_parquet_files(directory):
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--result-dir', type=str, required=True)
+    parser.add_argument('--dataset-id', type=str, required=True)
     return parser.parse_args(args)
 
+def push_to_hub(source_df, args):
+    # load the dataset from huggingface datasets
+    dataset = load_dataset('Silviase/CapEval', args.dataset_id)
+    dataset['train'] = dataset['train'].add_column('caption', source_df['caption'])
+    dataset['train'] = dataset['train'].add_column('visual_context', source_df['visual_context'])
+    dataset.push_to_hub('Silviase/CapEval', args.dataset_id)
 
 def main(args):
     args = parse_args(args)
@@ -45,9 +52,8 @@ def main(args):
     caption_dicts, context_dicts = None, None
     image_paths = None
     
-    print(args.result_dir)
-    caption_parquet_files, context_parquet_files = list_parquet_files(args.result_dir)
-    
+    root_dir = os.path.join('results', 'inference', args.dataset_id)
+    caption_parquet_files, context_parquet_files = list_parquet_files(root_dir)
     
     for file in caption_parquet_files:
         df = pd.read_parquet(file)
@@ -68,18 +74,23 @@ def main(args):
             context_dicts[i] = merge_dicts(context_dicts[i], row['visual_context'])
     
     
-    source_file = pd.DataFrame(columns=['image_path', 'caption', 'visual_context'])
-    source_file['image_path'] = image_paths
-    source_file['caption'] = caption_dicts
-    source_file['visual_context'] = context_dicts
+    source_df = pd.DataFrame(columns=['image_path', 'caption', 'visual_context'])
+    source_df['image_path'] = image_paths
+    source_df['caption'] = caption_dicts
+    source_df['visual_context'] = context_dicts
     
     # Save the merged dataframe
-    source_file.to_parquet(os.path.join(args.result_dir, 'result.parquet'))
+    source_df.to_parquet(os.path.join(root_dir, 'result.parquet'))
     
     print('Merged and saved {} caption files and {} context files to {}'.format(
         len(caption_parquet_files), 
         len(context_parquet_files), 
-        os.path.join(args.result_dir, 'result.parquet')))
+        os.path.join(root_dir, 'result.parquet')))
+    
+    push_to_hub(source_df, args)
+    
+    return 
+
 
 if __name__ == '__main__':
     import sys

@@ -4,8 +4,6 @@ from utils.prompter import Prompter
 import os
 import argparse
 import pandas as pd
-from datasets import Dataset, DatasetDict
-from PIL import Image
 from tqdm import tqdm
 tqdm.pandas()
 
@@ -13,73 +11,30 @@ class Evaluator:
     def __init__(self, 
                  dataset_id: str, 
                  model_id:str, 
-                 prompt_cfg:dict, 
-                 eval_results_dir:str='results/eval',
-                 split=-1,
-                 mode='eval',
-                 result_key='model') -> None:
+                 prompt_cfg:dict,) -> None:
         
         self.dataset_id = dataset_id
         self.model_id = model_id
         self.prompt_id = prompt_cfg['prompt_path'].split('/')[-1].split('.')[0]
-        self.split = split
-        self.eval_results_dir = eval_results_dir
-        self.mode = mode
-        self.result_key = result_key
         
         # load hf dataset
-        self.dataset = get_dataset(self.dataset_id, self.split)
+        self.dataset = get_dataset(self.dataset_id, -1)
         self.generator = get_generator(self.model_id)
         self.prompter = Prompter(**prompt_cfg)
 
+    def query(self, example):
+        example['prompt'] = self.prompter.format(example)
+        example['scores'][self.model_id] = {}
+        example['scores'][self.model_id][self.prompt_id] = self.generator.generate(example['image'], example['prompt'])
+        return example
 
-    def _inference_eval(self) -> None:
-        # Define the query function
-        def _query(example):
-            example['prompt'] = self.prompter.format(example)
-            example['scores'][self.result_key] = self.generator.generate(example['image'], example['prompt'])
-            return example
-        
+    def eval(self) -> None:
         # Conduct the evaluation
-        eval_result = self.dataset.map(_query, batched=False)
-        
-        # TODO: Implement the save function
-        raise NotImplementedError("Save function is not implemented yet")
-        
-    
-    def _inference_extract(self) -> None:
-        # Extract unique image_path rows
-        original_df = pd.DataFrame(self.dataset)
-        unique_paths = original_df.drop_duplicates(subset=['image_path'])[['image_path', 'image']]
-
-        # Define the query function
-        def _query(example):
-            example['prompt'] = self.prompter.format(example)
-            example['result'] = self.generator.generate(example['image'], example['prompt'])
-            return example
-        
-        # Map to the dataset
-        extracted_df = unique_paths.progress_apply(_query, axis=1)
-        
-        # Create row if original_df does not have 
-        if self.prompt_id not in original_df.columns:
-            original_df[self.prompt_id] = [{} for _ in range(len(original_df))]
-
-        # Add information to original_df
-        for index, row in extracted_df.iterrows():
-            matching_rows = original_df[original_df['image_path'] == row['image_path']]
-            if not matching_rows.empty:
-                for orig_index in matching_rows.index:
-                    original_df.at[orig_index, self.prompt_id][self.model_id] = row['result']
-        
-        # drop the image column
-        original_df.drop(columns=['image'], inplace=True)
-        
-        # save the result
+        eval_result = self.dataset.map(self.query, batched=False)
         result_file_path = os.path.join(
-            self.eval_results_dir, 
-            self.dataset_id, 
-            self.model_id, 
+            'results/eval',
+            self.dataset_id,
+            self.model_id,
             self.prompt_id,
             'result.parquet'
         )
@@ -87,52 +42,33 @@ class Evaluator:
         if not os.path.exists(os.path.dirname(result_file_path)):
             os.makedirs(os.path.dirname(result_file_path))
         
-        original_df.to_parquet(result_file_path)
-        return 
+        eval_result_df = pd.DataFrame(eval_result)
+        eval_result_df = eval_result_df.drop(columns=['image'])
+        eval_result_df.to_parquet(result_file_path)
+    
 
-    def inference(self) -> None:
-        """
-        Inference the model using the prompt and save the results to the result_eval_dir.
-        
-        Args:
-            prompt (str): The prompt
-            result_key (str): The key of the result
-        
-        Returns:
-            None
-        """
-        
-        if self.mode == 'eval':
-            self._inference_eval()
-        elif self.mode == 'extract':
-            self._inference_extract()
-        else:
-            raise ValueError(f"Invalid mode: {self.mode}")
-        
-        return 
 
 def parse_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_id', type=str, required=True)
     parser.add_argument('--model_id', type=str, required=True)
-    parser.add_argument('--eval_results_dir', type=str, default='results/eval')
-    parser.add_argument('--split', type=int, default=-1)
-    parser.add_argument('--result_key', type=str, default='score_model')
-    parser.add_argument('--mode', type=str, default='eval', choices=['eval', 'extract'])
     
-    # Prompter Configurations
+    # Debug
+    parser.add_argument('--debug', action='store_true')
+    
+    # Prompt Config
     parser.add_argument('--prompt_path', type=str, required=True)
+    parser.add_argument('--source_model_id', type=str)
     parser.add_argument('--use_cand', action='store_true')
     parser.add_argument('--use_refs', action='store_true')
     parser.add_argument('--use_cand_a', action='store_true')
     parser.add_argument('--use_cand_b', action='store_true')
+    parser.add_argument('--use_caption', action='store_true')
     parser.add_argument('--use_context', action='store_true')
     parser.add_argument('--use_object', action='store_true')
     parser.add_argument('--use_attribute', action='store_true')
     parser.add_argument('--use_relation', action='store_true')
     
-    # Debug
-    parser.add_argument('--debug', action='store_true')
     
     return parser.parse_args(args)
 
@@ -148,6 +84,7 @@ def main(args):
         args.model_id, 
         prompt_cfg=dict(
             prompt_path=args.prompt_path,
+            source_model_id=args.source_model_id,
             use_cand=args.use_cand,
             use_refs=args.use_refs,
             use_cand_a=args.use_cand_a,
@@ -157,12 +94,8 @@ def main(args):
             use_attribute=args.use_attribute,
             use_relation=args.use_relation,
         ),
-        eval_results_dir=args.eval_results_dir,
-        split=args.split,
-        mode=args.mode,
-        result_key=args.result_key,
     )
-    evaluator.inference()
+    evaluator.eval()
     
 
 if __name__ == '__main__':

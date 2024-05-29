@@ -4,12 +4,14 @@ from copy import deepcopy
 class Prompter:
     def __init__(self, **kwargs):
         self.prompt_base = self._load_prompt_base(kwargs.get('prompt_path'))
+        self.source_model_id = kwargs.get('source_model_id', 'model')
         
         # Use or not (default: False)
         self.use_cand = kwargs.get('use_cand', False)
         self.use_refs = kwargs.get('use_refs', False)
         self.use_cand_a = kwargs.get('use_cand_a', False)
         self.use_cand_b = kwargs.get('use_cand_b', False)
+        self.use_caption = kwargs.get('use_caption', False)
         self.use_context = kwargs.get('use_context', False)
         self.use_object = kwargs.get('use_object', False)
         self.use_attribute = kwargs.get('use_attribute', False)
@@ -36,8 +38,10 @@ class Prompter:
             prompt = prompt.replace('[cand_a]', f"A: {datum['cand_a']}")
         if self.use_cand_b:
             prompt = prompt.replace('[cand_b]', f"B: {datum['cand_b']}")
+        if self.use_caption:
+            prompt = prompt.replace('[caption]', f"Context:\n{datum['caption'][self.source_model_id]}")
         if self.use_context:
-            prompt = prompt.replace('[context]', f"Context:\n{datum['context']}")
+            prompt = prompt.replace('[context]', f"Context:\n{datum['visual_context'][self.source_model_id]}")
         if self.use_object:
             prompt = prompt.replace('[object]', f"Object:\n{datum['object']}")
         if self.use_attribute:

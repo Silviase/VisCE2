@@ -42,6 +42,10 @@ def parse_args(args):
 def push_to_hub(source_df, args):
     # load the dataset from huggingface datasets
     dataset = load_dataset('Silviase/CapEval', args.dataset_id)
+    # if exist, Remove the original caption and visual_context.
+    if 'caption' in dataset['train'].column_names:
+        dataset['train'] = dataset['train'].remove_columns(['caption', 'visual_context'])
+    # Add new caption and visual_context
     dataset['train'] = dataset['train'].add_column('caption', source_df['caption'])
     dataset['train'] = dataset['train'].add_column('visual_context', source_df['visual_context'])
     dataset.push_to_hub('Silviase/CapEval', args.dataset_id)

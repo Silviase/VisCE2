@@ -7,12 +7,7 @@ class CapEvalDataset:
         self._load()
         
     def _load(self):
-        if self.split >= 0:
-            min_idx = self.split * 100
-            max_idx = min_idx + 100
-            self.dataset = load_dataset('Silviase/CapEval', self.dataset_id, split=f'train[{min_idx}:{max_idx}]')
-        else:
-            self.dataset = load_dataset('Silviase/CapEval', self.dataset_id, split='train')
+        self.dataset = load_dataset('Silviase/CapEval', self.dataset_id, split='train')
 
     def metaeval(self, model_id, prompt, eval_results_dir='results_eval', metaeval_results_dir='results_metaeval') -> None:
         """
@@ -44,5 +39,8 @@ def get_dataset(dataset_id, split=-1):
     elif dataset_id == 'thumb':
         from .thumb import THumB
         return THumB(dataset_id, split=split).dataset
+    elif dataset_id == 'pascal-50s':
+        from .pascal50s import Pascal50s
+        return Pascal50s(dataset_id, split=split).dataset
     else:
         raise NotImplementedError("The dataset is not implemented yet.")

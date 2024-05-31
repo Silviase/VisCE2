@@ -19,6 +19,9 @@ def get_generator(model_id):
     if 'liuhaotian/llava-v1.5' in model_id:
         from .llava_v15 import LlavaV15
         return LlavaV15(model_id)
+    elif 'liuhaotian/llava-v1.6' in model_id:
+        from .llava_v16 import LlavaV16
+        return LlavaV16(model_id)
     elif 'Yi-VL' in model_id:
         from .yi_vl import YiVL
         # cannot load from 01-ai/Yi-VL-6B directly

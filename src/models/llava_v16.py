@@ -2,14 +2,17 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_S
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import process_images, tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+from llava.utils import disable_torch_init
 from PIL import Image
 import torch
 from .generator import Generator, get_generator
 
-class LlavaV15(Generator):
+class LlavaV16(Generator):
 
     def _load(self, model_id):
-        # e.g.) model_id = "liuhaotian/llava-v1.5-7b"
+        disable_torch_init()
+        
+        # e.g.) model_id = "liuhaotian/llava-v1.6-7b"
         self.load_4bit = True # if '13b' in model_id else False
         self.conv_mode = "llava_v1"
         print("Conversation mode: {}".format(self.conv_mode))
@@ -40,6 +43,7 @@ class LlavaV15(Generator):
         
         # image
         image = [image]
+        image_sizes = [x.size for x in image]
         image_tensor = process_images(image, self.image_processor, self.model.config).to(self.model.device, dtype=torch.float16)
         
         # stopping criteria
@@ -52,6 +56,7 @@ class LlavaV15(Generator):
             output_ids = self.model.generate(
                 input_ids,
                 images=image_tensor,
+                image_sizes=image_sizes,
                 do_sample=False,
                 max_new_tokens=256,
                 use_cache=True,
@@ -74,12 +79,12 @@ if __name__ == "__main__":
         "Evaluate the caption is appropriate from 0 to 10 point scale. caption: A cat is sitting on the floor.",
     ]
     
-    model = LlavaV15("liuhaotian/llava-v1.5-7b")
+    model = get_generator('liuhaotian/llava-v1.6-vicuna-7b')
     
     for prompt in prompts:
         print(model.generate(img, prompt))
         
-    # model = LlavaV15("liuhaotian/llava-v1.5-13b")
+    model = get_generator("liuhaotian/llava-v1.6-vicuna-13b")
     
-    # for prompt in prompts:
-    #     print(model.generate(img, prompt))
+    for prompt in prompts:
+        print(model.generate(img, prompt))

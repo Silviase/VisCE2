@@ -52,8 +52,9 @@ class LlavaV15(Generator):
             output_ids = self.model.generate(
                 input_ids,
                 images=image_tensor,
-                do_sample=False,
-                max_new_tokens=256,
+                do_sample=True,
+                temperature=0.2,
+                max_new_tokens=1024,
                 use_cache=True,
                 stopping_criteria=[stopping_criteria],
             )

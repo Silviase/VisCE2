@@ -1,4 +1,4 @@
-from .capeval_dataset import CapEvalDataset, get_dataset
+from .capeval_dataset import CapEvalDataset, get_dataset, get_hierarchical_from_dict, get_digit_scores
 from scipy.stats import kendalltau
 import json
 import os
@@ -26,13 +26,22 @@ class Flickr8kExpert(CapEvalDataset):
         """
         
         # load result .parquet file (without image version)
-        eval_result_path = f'{eval_results_dir}/{model_id}/{prompt}.parquet'
+        eval_result_path = f'{eval_results_dir}/flickr8k-expert.parquet'
         eval_results = pd.read_parquet(eval_result_path)
 
         # calculate Kendall's tau (b) using the evaluation results
         # key is 'score_human' and 'score_model'
-        score_human = [result['scores']['human'] for result in eval_results]
-        score_model = [result['score_model'] for result in eval_results]
+        score_human = eval_results['scores'].apply(
+            lambda x: get_hierarchical_from_dict(x, ['human'])
+        )
+        score_model = eval_results['scores'].apply(
+            lambda x: get_hierarchical_from_dict(x, [model_id, prompt])
+        )
+        
+        # postprocess
+        score_human = score_human.apply(get_digit_scores)
+        score_model = score_model.apply(get_digit_scores)
+        
         kendall_tau_b, std = kendalltau(score_human, score_model, variant='b')
         
         # load the meta-evaluation results
@@ -46,6 +55,10 @@ class Flickr8kExpert(CapEvalDataset):
         # update the meta-evaluation results
         if self.dataset_id not in metaeval_results:
             metaeval_results[self.dataset_id] = {}
+        
+        if f'{model_id}_{prompt}' not in metaeval_results[self.dataset_id]:
+            metaeval_results[self.dataset_id][f'{model_id}_{prompt}'] = {}
+        
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['kendall_tau_b'] = kendall_tau_b
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['std'] = std
         

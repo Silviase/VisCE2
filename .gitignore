@@ -1,6 +1,6 @@
 datasets
 preprocess
-preprocessed_depr
+*_depr
 submodules
 results/*/*/*/*/*/result_*.parquet
 

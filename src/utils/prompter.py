@@ -4,7 +4,7 @@ from copy import deepcopy
 class Prompter:
     def __init__(self, **kwargs):
         self.prompt_base = self._load_prompt_base(kwargs.get('prompt_path'))
-        self.source_model_id = kwargs.get('source_model_id', 'model')
+        self.source_model_id = kwargs.get('source_model_id', 'liuhaotian/llava-v1.5-13b')
         
         # Use or not (default: False)
         self.use_cand = kwargs.get('use_cand', False)
@@ -39,9 +39,9 @@ class Prompter:
         if self.use_cand_b:
             prompt = prompt.replace('[cand_b]', f"B: {datum['cand_b']}")
         if self.use_caption:
-            prompt = prompt.replace('[caption]', f"Context:\n{datum['caption'][self.source_model_id]}")
+            prompt = prompt.replace('[caption]', f"Visual Context:\n{datum['caption'][self.source_model_id]}")
         if self.use_context:
-            prompt = prompt.replace('[context]', f"Context:\n{datum['visual_context'][self.source_model_id]}")
+            prompt = prompt.replace('[context]', f"Visual Context:\n{datum['visual_context'][self.source_model_id]}")
         if self.use_object:
             prompt = prompt.replace('[object]', f"Object:\n{datum['object']}")
         if self.use_attribute:
@@ -66,12 +66,19 @@ class Prompter:
 
 
 if __name__ == '__main__':
-    prompter = Prompter('prompts/base.txt', use_cand=True, use_refs=True)
+    
+    cfg = {
+        'prompt_path': 'prompts/visce_2.txt',
+        'source_model_id': 'liuhaotian/llava-v1.5-13b',
+        'use_cand': True,
+        'use_context': True,
+    }
+    prompter = Prompter(**cfg)
     from src.data.capeval_dataset import get_dataset
-    data = get_dataset('flickr8k-expert', 0).data
-    datum = data.iloc[0]
+    data = get_dataset('flickr8k-expert')
+    datum = data[0]
     print('================================')
     print(prompter.format(datum))
     print('================================')
-    datum = data.iloc[1]
+    datum = data[1]
     print(prompter.format(datum))

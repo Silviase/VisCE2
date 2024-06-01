@@ -10,3 +10,10 @@ CUDA_VISIBLE_DEVICES=$DEVICES python src/inference.py \
                 --prompt_path=prompts/$PROMPT_ID.txt \
                 --result_key=$RESULT_KEY \
                 --debug
+
+python tmp/notify.py --dataset_id=$DATASET_ID \
+                --model_id=$MODEL_ID \
+                --prompt_id=$PROMPT_ID \
+                --result_key=$RESULT_KEY \
+                --devices=$DEVICES \
+                --debug

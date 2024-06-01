@@ -1,4 +1,6 @@
 from datasets import load_dataset
+import re
+
 
 class CapEvalDataset:
     def __init__(self, dataset_id, split=-1):
@@ -44,3 +46,58 @@ def get_dataset(dataset_id, split=-1):
         return Pascal50s(dataset_id, split=split).dataset
     else:
         raise NotImplementedError("The dataset is not implemented yet.")
+
+def get_data_sys(dataset_id):
+    if dataset_id == 'flickr8k-expert':
+        from .flickr8k_expert import Flickr8kExpert
+        return Flickr8kExpert(dataset_id)
+    elif dataset_id == 'flickr8k-cf':
+        from .flickr8k_cf import Flickr8kCF
+        return Flickr8kCF(dataset_id)
+    elif dataset_id == 'composite':
+        from .composite import Composite
+        return Composite(dataset_id)
+    elif dataset_id == 'thumb':
+        from .thumb import THumB
+        return THumB(dataset_id)
+    elif dataset_id == 'pascal-50s':
+        from .pascal50s import Pascal50s
+        return Pascal50s(dataset_id)
+    else:
+        raise NotImplementedError("The dataset is not implemented yet.")
+    
+    
+def get_hierarchical_from_dict(dict, key_hierarchy):
+    """
+    Get the value from the dictionary using the key hierarchy
+    
+    Args:
+        dict (dict): The dictionary
+        key_hierarchy (list): The list of keys
+    
+    Returns:
+        The value from the dictionary
+    """
+    for key in key_hierarchy:
+        dict = dict[key]
+    return dict
+
+def get_digit_scores(s):
+    """
+    Get the first [0-100] digit scores from the string
+    
+    Args:
+        string (str): The string
+    
+    Returns:
+        The digit scores
+    """
+    s = str(s)
+    score_str = re.findall(r'[0-9]+', s)
+    score_str = score_str[0] if score_str else ''
+    # if score_str is not detected, return 0
+    if score_str == '':
+        print(f"score_str is not detected: {s}")
+        return 0
+    score_float = float(score_str)
+    return score_float

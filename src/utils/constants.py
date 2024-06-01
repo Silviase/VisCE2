@@ -1,5 +1,18 @@
 desc_task = '''
-Evaluate the given candidate caption based on the following information.
+On a precise scale from 0 to 100, rate whether the candidate caption is appropriate for the given image.
+'''
+
+desc_vis_info = '''
+Use the image and following visual context to evaluate the candidate caption:
+'''
+
+desc_answer_format = '''
+Your final rating must be a single digit between 0 and 100.
+'''
+
+desc_appropriateness = '''
+Appropriateness(0-100): How well the caption matches the image's content, atmosphere, and context.
+A score of 0 indicates complete inappropriateness, while a score of 100 indicates perfect appropriateness.
 '''
 
 desc_precision = '''

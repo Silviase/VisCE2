@@ -1,4 +1,4 @@
-from .capeval_dataset import CapEvalDataset, get_dataset
+from .capeval_dataset import CapEvalDataset, get_dataset, get_hierarchical_from_dict, get_digit_scores
 from scipy.stats import pearsonr
 import json
 import os
@@ -26,15 +26,29 @@ class THumB(CapEvalDataset):
         """
         
         # load result .parquet file (without image version)
-        eval_result_path = f'{eval_results_dir}/thumb/{model_id}/{prompt}.parquet'
+        eval_result_path = f'{eval_results_dir}/thumb.parquet'
         eval_results = pd.read_parquet(eval_result_path)
 
         # calculate Pearson's correlation coefficient using the evaluation results
         # key is 'score_human' and 'score_model'
-        score_human_p = [result['scores']['human_p'] for result in eval_results]
-        score_human_r = [result['scores']['human_r'] for result in eval_results]
-        score_human_total = [result['scores']['human_total'] for result in eval_results]
-        score_model = [result['scores']['model'] for result in eval_results]
+        score_human_p = eval_results['scores'].apply(
+            lambda x: x['human_p']
+        )
+        score_human_r = eval_results['scores'].apply(
+            lambda x: x['human_r']
+        )
+        score_human_total = eval_results['scores'].apply(
+            lambda x: x['human_total']
+        )
+        score_model = eval_results['scores'].apply(
+            lambda x: x[model_id][prompt]
+        )
+        
+        # postprocess
+        score_human_p = score_human_p.apply(get_digit_scores)
+        score_human_r = score_human_r.apply(get_digit_scores)
+        score_human_total = score_human_total.apply(get_digit_scores)
+        score_model = score_model.apply(get_digit_scores)
         
         pearson_p, std_p = pearsonr(score_human_p, score_model)
         pearson_r, std_r = pearsonr(score_human_r, score_model)
@@ -52,6 +66,8 @@ class THumB(CapEvalDataset):
         # update the meta-evaluation results
         if self.dataset_id not in metaeval_results:
             metaeval_results[self.dataset_id] = {}
+        if f'{model_id}_{prompt}' not in metaeval_results[self.dataset_id]:
+            metaeval_results[self.dataset_id][f'{model_id}_{prompt}'] = {}
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['pearson_p'] = pearson_p
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['std_p'] = std_p
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['pearson_r'] = pearson_r

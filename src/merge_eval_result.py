@@ -2,8 +2,7 @@ import os
 import argparse
 import pandas as pd
 from tqdm import tqdm
-from datasets import load_dataset, Dataset
-from PIL import Image as PILImage
+from datasets import Dataset
 
 def merge_dicts(dict1, dict2):
     """
@@ -58,10 +57,10 @@ def main(args):
     
     source_df = pd.DataFrame(columns=['image_path', 'scores'])
     source_df['image_path'] = image_paths
-    source_df['caption'] = score_dicts
+    source_df['scores'] = score_dicts
     
     # Save the merged dataframe
-    source_df.to_parquet(os.path.join('results', 'metaeval', f'{args.dataset_id}.parquet'))
+    source_df.to_parquet(os.path.join('results', 'eval', f'{args.dataset_id}.parquet'))
     
     print('Merged and saved {} eval files to {}'.format(
         len(score_parquet_files), 

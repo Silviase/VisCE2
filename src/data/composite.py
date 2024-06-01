@@ -1,4 +1,4 @@
-from .capeval_dataset import CapEvalDataset, get_dataset
+from .capeval_dataset import CapEvalDataset, get_dataset, get_hierarchical_from_dict, get_digit_scores
 from scipy.stats import kendalltau
 import json
 import os
@@ -6,8 +6,7 @@ import pandas as pd
 
 class Composite(CapEvalDataset):
     def __init__(self, dataset_id, split=-1):
-        super().__init__(dataset_id, split=split)
-        
+        super().__init__(dataset_id, split=split)    
 
     def metaeval(self, model_id, prompt, eval_results_dir='results/eval', metaeval_results_dir='results/metaeval') -> None:
         """
@@ -26,14 +25,26 @@ class Composite(CapEvalDataset):
         """
         
         # load result .parquet file (without image version)
-        eval_result_path = f'{eval_results_dir}/composite/{model_id}/{prompt}.parquet'
+        eval_result_path = f'{eval_results_dir}/composite.parquet'
         eval_results = pd.read_parquet(eval_result_path)
 
         # calculate Kendall's tau (b) using the evaluation results
         # key is 'score_human' and 'score_model'
-        score_human_correctness = eval_results['scores']['human_correctness']
-        score_human_throughness = eval_results['scores']['human_throughness']
-        score_model = eval_results['scores']['model']
+        score_human_correctness = eval_results['scores'].apply(
+            lambda x: get_hierarchical_from_dict(x, ['human_correctness'])
+        )
+        score_human_throughness = eval_results['scores'].apply(
+            lambda x: get_hierarchical_from_dict(x, ['human_throughness'])
+        )
+        score_model = eval_results['scores'].apply(
+            lambda x: get_hierarchical_from_dict(x, [model_id, prompt])
+        )
+        
+        # postprocess
+        score_human_correctness = score_human_correctness.apply(get_digit_scores)
+        score_human_throughness = score_human_throughness.apply(get_digit_scores)
+        score_model = score_model.apply(get_digit_scores)
+        
         kendall_tau_b_correctness, std_correctness = kendalltau(score_human_correctness, score_model, variant='b')
         kendall_tau_b_throughness, std_throughness = kendalltau(score_human_throughness, score_model, variant='b')
         
@@ -48,6 +59,10 @@ class Composite(CapEvalDataset):
         # update the meta-evaluation results
         if self.dataset_id not in metaeval_results:
             metaeval_results[self.dataset_id] = {}
+            
+        if f'{model_id}_{prompt}' not in metaeval_results[self.dataset_id]:
+            metaeval_results[self.dataset_id][f'{model_id}_{prompt}'] = {}
+            
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['kendall_tau_b_correctness'] = kendall_tau_b_correctness
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['std_correctness'] = std_correctness
         metaeval_results[self.dataset_id][f'{model_id}_{prompt}']['kendall_tau_b_throughness'] = kendall_tau_b_throughness
